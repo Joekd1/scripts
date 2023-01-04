@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# A script that uses dmenu to search zsh history and copy selection to the clipboard
+# Usage : hist [item to search]
+# The choosen item is available via the clipboard
+
+choice="$( cat ~/.zsh_history | grep "$1" | sort -u | uniq | dmenu -i -l 7 -p 'Choose Command: ')"
+printf "$choice" | xclip -sel clip
