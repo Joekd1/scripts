@@ -4,5 +4,11 @@
 # Usage : hist [item to search]
 # The choosen item is available via the clipboard
 
+# Testing that an argument was provided
+if [ $# != 1 ]; then
+    echo "Please provide one argument with the script."
+    exit 1
+fi
+
 choice="$( cat ~/.zsh_history | grep "$1" | sort -u | uniq | dmenu -i -l 7 -p 'Choose Command: ')"
 printf "$choice" | xclip -sel clip
