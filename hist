@@ -1,8 +1,11 @@
 #!/bin/bash
 
-# A script that uses dmenu to search zsh history and copy selection to the clipboard
+# A script that uses dmenu|wofi to search zsh history and copy selection to the clipboard
+# On x11 Dmenu is used and Wofi on Wayland
 # Usage : hist [item to search]
-# The choosen item is available via the clipboard
+
+#Requirements: xclip and dmenu or x11
+#              wl-clipboard and wofi on wayland
 
 # Testing that an argument was provided
 if [ $# != 1 ]; then
@@ -10,5 +13,23 @@ if [ $# != 1 ]; then
     exit 1
 fi
 
-choice="$( cat ~/.zsh_history | grep "$1" | sort -u | uniq | dmenu -i -l 7 -p 'Choose Command: ')"
-printf "$choice" | xclip -sel clip
+#Use dmenu and xclip on xorg
+#Use wofi and wl-copy on Wayland
+
+if [ "$XDG_SESSION_TYPE" = "x11" ]; then
+    # echo "You are on x11"
+    launcher="dmenu -i -l 7 -p 'Command'" 
+    clipboard="xclip -sel clip"
+elif [ "$XDG_SESSION_TYPE" = "wayland" ]; then
+    launcher='wofi --prompt="Choose Task" --xoffset=300 --dmenu --width=600'
+    clipboard="wl-copy"
+fi
+
+choice=$(cat ~/.zsh_history | grep "$1" | sort -u | uniq | $launcher)
+
+#Copy Selectio to the clipboard
+printf "$choice" | $clipboard
+
+
+
+
