@@ -1,0 +1,33 @@
+#!/bin/bash
+# kimport: import your kindle highlights and notes, organize them and copy the results to the clipboard
+# Usage : kimport [Path to your My Clipping.txt kindle file]
+
+# Testing that an argument was provided
+if [ $# != 1 ]; then
+    echo "Please provide path to My Clippings.txt file"
+    exit 1
+fi
+
+
+#Use xclip on xorg
+#Use wl-clipboard on Wayland
+
+if [ "$XDG_SESSION_TYPE" = "x11" ]; then
+    clipboard="xclip -sel clip"
+elif [ "$XDG_SESSION_TYPE" = "wayland" ]; then
+    clipboard="wl-copy"
+fi
+
+# Choose a book from a list of all available books
+book=$(cat "$1" | sed -n '/====/{ n; p}' | sort -u | uniq | fzf)
+
+highlights=$(cat "$1" | grep -iA3 "$book" | sed -n '/Your Highlight/{ n; n; p }' | sed 's\^\* \' )
+notes=$(cat "$1" | grep -iA3 "$book" | sed -n '/Your Note/{ n; n; p }' | sed 's\^\* \' )
+
+# Copy highlights and append notes when available
+
+if [ -n "$notes" ]; then
+    printf "Book: $book\n\n\n Your Highlights: \n============\n\n $highlights \n\n\n Your Notes: \n============\n$notes\n" | $clipboard
+else
+    printf "$highlights" | $clipboard
+fi
