@@ -2,12 +2,15 @@
 # kimport: import your kindle highlights and notes, organize them and copy the results to the clipboard
 # Usage : kimport [Path to your My Clipping.txt kindle file]
 
+# Requirements : 
+# fzf
+# xclip on x1 and wl-clipboard on wayland
 # Testing that an argument was provided
+
 if [ $# != 1 ]; then
     echo "Please provide path to My Clippings.txt file"
     exit 1
 fi
-
 
 #Use xclip on xorg
 #Use wl-clipboard on Wayland
@@ -18,16 +21,24 @@ elif [ "$XDG_SESSION_TYPE" = "wayland" ]; then
     clipboard="wl-copy"
 fi
 
+# Convert My Clippings into a Bash array
+readarray -t lines < "$1"
+
 # Choose a book from a list of all available books
-book=$(cat "$1" | sed -n '/====/{ n; p}' | sort -u | uniq | fzf)
+book="$(cat "$1" | sed -n '/====/{ n; p}' | sort -u | uniq | fzf)"
 
-highlights=$(cat "$1" | grep -iA3 "$book" | sed -n '/Your Highlight/{ n; n; p }' | sed 's\^\* \' )
-notes=$(cat "$1" | grep -iA3 "$book" | sed -n '/Your Note/{ n; n; p }' | sed 's\^\* \' )
+# loop over the array and get the highlights and notes
 
-# Copy highlights and append notes when available
+notes=""
+for ((index=0; index < ${#lines[@]}; index++)); do
+  if [[ "${lines[index]}" == *"$book"* ]] && [[ "${lines[index+1]}" == *"Highlight"* ]]; then
+    notes="${notes}\n* ${lines[index+3]}"
+  elif [[ "${lines[index]}" == *"$book"* ]] && [[ "${lines[index+1]}" == *"Note"* ]]; then
+    notes="${notes}\n*** ${lines[index+3]}"
+  fi
+done
 
-if [ -n "$notes" ]; then
-    printf "Book: $book\n\n\n Your Highlights: \n============\n\n $highlights \n\n\n Your Notes: \n============\n$notes\n" | $clipboard
-else
-    printf "$highlights" | $clipboard
-fi
+# copy the content into the clipboard
+printf "$notes" | $clipboard
+
+
