@@ -4,6 +4,16 @@
 # Usage : fzhist [item to search]
 
 #Requirements: fzf
+# xclip on x11
+# wl-clipboard on wayland
+
+
+if [ "$XDG_SESSION_TYPE" = "x11" ]; then
+    # echo "You are on x11"
+    clipboard="xclip -sel clip"
+elif [ "$XDG_SESSION_TYPE" = "wayland" ]; then
+    clipboard="wl-copy"
+fi
 
 if [ $# != 1 ]; then
     echo "Please provide one argument with the script."
@@ -15,6 +25,7 @@ exceptions='hist|man|fzhist'
 
 choice=$(cat ~/.zsh_history | grep "$1" | sort -u | uniq | grep -vwE "$exceptions" | fzf -i )
 
+printf "$choice" | $clipboard
 
 
 
