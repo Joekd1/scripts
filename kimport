@@ -1,13 +1,13 @@
 #!/bin/bash
-# kimport: import your kindle highlights and notes, organize them and copy the results to the clipboard
-# Usage : kimport [Path to your My Clipping.txt kindle file]
+# kimport: import your kindle highlights and notes, organize them and copy the results to the clipboard or optionally saves it to a file
+# Usage : kimport [Path to your My Clipping.txt] [Path to save the file]
 
 # Requirements : 
 # fzf
 # xclip on x1 and wl-clipboard on wayland
 # Testing that an argument was provided
 
-if [ $# != 1 ]; then
+if [ $# -ne 1 ] && [ $# -ne 2 ]; then
     echo "Please provide path to My Clippings.txt file"
     exit 1
 fi
@@ -38,7 +38,11 @@ for ((index=0; index < ${#lines[@]}; index++)); do
   fi
 done
 
-# copy the content into the clipboard
-printf "$notes" | $clipboard
+if [ $# -eq 1 ]; then
+    printf "$notes" | $clipboard
+else
+filename="${1}_$(printf "%03d" $RANDOM).diff"
+    printf "$notes" > ${2}_$(printf "%03d" $RANDOM).new
+fi
 
 
